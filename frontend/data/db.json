@@ -1,0 +1,93 @@
+{
+    "itinerary": [
+        {
+            "id": 1,
+            "country_id": 1,
+            "user_id": 1,
+            "budget": 500,
+            "title": "Sightseeing in Singapore"
+          },
+          {
+            "id": 2,
+            "country_id": 1,
+            "user_id": 1,
+            "budget": 800,
+            "title": "Singapore Adventure"
+          },
+          {
+            "id": 3,
+            "country_id": 1,
+            "user_id": 2,
+            "budget": 600,
+            "title": "Exploring Singapore"
+          }
+    ],
+    "itinerary_destination": [
+        {
+            "id": 1,
+            "destination_id": 1,
+            "itinerary_id": 1
+          },
+          {
+            "id": 2,
+            "destination_id": 2,
+            "itinerary_id": 1
+          },
+          {
+            "id": 3,
+            "destination_id": 3,
+            "itinerary_id": 1
+          },
+          {
+            "id": 4,
+            "destination_id": 4,
+            "itinerary_id": 2
+          },
+          {
+            "id": 5,
+            "destination_id": 5,
+            "itinerary_id": 2
+          },
+          {
+            "id": 6,
+            "destination_id": 2,
+            "itinerary_id": 3
+          }
+
+    ],
+    "country": [
+        {
+            "id": 1,
+            "name": "Singapore"
+        }
+    ],
+    "user": [
+        {
+            "id": 1,
+            "first_name": "John",
+            "last_name": "Doe",
+            "password": "johndoe123",
+            "username": "johndoe"
+          },
+          {
+            "id": 2,
+            "first_name": "Emily",
+            "last_name": "Smith",
+            "password": "emilysmith456",
+            "username": "emilysmith"
+          },
+
+          {
+            "id": 3,
+            "first_name": "David",
+            "last_name": "Brown",
+            "password": "davidbrown789",
+            "username": "davidbrown"
+          }
+
+    ]
+    
+  }
+
+
+
