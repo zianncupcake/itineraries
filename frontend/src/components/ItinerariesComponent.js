@@ -17,7 +17,7 @@ const ItinerariesComponent = ({getItineraries, deleteItinerary, getItineraryDest
           const filtered = res.filter((itinerary) => itinerary.user_id == id)
             console.log("filtered", res)
 
-            
+
         })
         .catch(er => console.log(er))
       }, [itineraries])
@@ -41,9 +41,9 @@ const ItinerariesComponent = ({getItineraries, deleteItinerary, getItineraryDest
       <Col md={11} >
         <h1>
           My Itineraries {"    "}
-          <LinkContainer to={`/createaccount/${id}`} >
+          <LinkContainer to={`/createitinerary/${id}`} >
             <Button variant="primary" size="lg" className="ms-3">
-              Create New Account
+              Create New Itinerary
             </Button>
           </LinkContainer>
 
