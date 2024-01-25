@@ -47,7 +47,7 @@ const getItineraries = async (req, res) => {
       const filtered = itinerarydestinationXdestination.filter(
         (x) => x.itinerary_id === itinerary.id
       );
-      console.log(filtered);
+    //   console.log(filtered);
       itinerary.destinations = filtered;
     });
     res.json(itinerarytable);
@@ -94,25 +94,34 @@ const editItinerary = async (req, res) => {
 };
 const createItinerary = async (req, res) => {
   try {
-    const { country_id, user_id, budget, title, name, destinationsList } = req.body;
+    const {user_id, budget, title, name, destinations } = req.body;
+    let country_id = ''
+    if (destinations.length > 0) {
+        country_id =  destinations[0].country_id;
+      } else {
+        // If the country doesn't exist, insert it and then return its id
+        const result = await db.query('INSERT INTO country (name) VALUES (?)', [name]);
+        country_id = result.insertId
+      }
 
     const q = `
             INSERT INTO itinerary 
             (country_id, user_id, budget, title) 
             VALUES (?, ?, ?, ?)
           `;
-    const output = await db.query(q, [country_id, user_id, budget, title]);
+    const output1 = await db.query(q, [country_id, user_id, budget, title]);
+    const destinationsList = destinations.map((d) => parseInt(d.destination_id))
+    console.log("destinationslist ", destinationsList)
 
-    const placeholders = destinationsList.map(() => `(${output.insertId}, ?)`).join(", ");
+    const placeholders = destinationsList.map(() => `(${output1.insertId}, ?)`).join(", ");
     const itinerarydestinationQuery = `
-      INSERT INTO itinerary_destination (itinerary_id, destination_id) VALUES
-        ${placeholders};
-    
-      COMMIT;    `;
-    await db.query(itinerarydestinationQuery, [output.insertId, ...destinationsList]);
+      INSERT INTO itinerary_destination (itinerary_id, destination_id) VALUES ${placeholders} `;
+    const output2 = await db.query(itinerarydestinationQuery, [...destinationsList]);
 
 
-    res.status(200).json({ message: "itinerary create successfully", output:output});
+    res.status(200).json({ message: "itinerary create successfully", output1:output1, output2:output2});
+    console.log("output1", output1)
+    console.log("output2", output2)
   } catch (err) {
     console.log(err);
   }
