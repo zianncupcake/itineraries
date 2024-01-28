@@ -21,8 +21,14 @@ const DashboardPage = () => {
         return data;
     }  
 
+    const editItinerary = async (id, formInputs) => {
+        const { data } = await axios.put(`http://localhost:8800/api/itinerary/${id}`, { ...formInputs });
+        return data;
+    }  
+
+
   
-  return <DashboardComponent getItineraries={getItineraries} deleteItinerary={deleteItinerary} createItinerary={createItinerary} />;
+  return <DashboardComponent getItineraries={getItineraries} deleteItinerary={deleteItinerary} createItinerary={createItinerary} editItinerary={editItinerary} />;
 };
 
 export default DashboardPage;

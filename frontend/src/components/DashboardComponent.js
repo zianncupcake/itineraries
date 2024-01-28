@@ -8,7 +8,7 @@ import {
   Form,
   Container,
   Dropdown,
-  Alert
+  Alert,
 } from "react-bootstrap";
 import CountrySelect from "react-bootstrap-country-select";
 import { LinkContainer } from "react-router-bootstrap";
@@ -23,11 +23,15 @@ const DashboardComponent = ({
   getItineraries,
   deleteItinerary,
   createItinerary,
+  editItinerary
 }) => {
   const { id } = useParams();
   const [itineraries, setItineraries] = useState([]);
 
-  const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [currEditingItinerary, setCurrEditingItinerary] = useState({});
+
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedLabel, setSelectedLabel] = useState({});
@@ -36,14 +40,57 @@ const DashboardComponent = ({
     []
   );
   const [selectedDestinations, setSelectedDestinations] = useState([]);
-  const [success, setSuccess] = useState(false)
+  const [success, setSuccess] = useState(false);
 
-  const handleShow = () => {
-    
-    setShowModal(true)};
-  const handleClose = () => setShowModal(false);
+  const handleShowCreate = () => {
+    setShowCreateModal(true);
+    setSuccess(false)
+    setSelectedDestinations([]);
+
+  };
+  const handleCloseCreate = () => {
+    setShowCreateModal(false)
+    setSelectedDestinations([]);
+    setCurrEditingItinerary({});
+    setSelectedLabel({});
+    setSelectedDestinations([]);
+    setAllDestinationsPerCountry([]);
+    setSelectedCountry('');
+
+
+
+  };
+
+  const handleShowEdit = (i) => {
+    setShowEditModal(true);
+    setSuccess(false)
+    setCurrEditingItinerary(i);
+    setSelectedLabel(
+      countries.find((country) => country.label.toString().slice(5) === i.name)
+    );
+    setSelectedCountry(i.name);
+    setSelectedDestinations(i.destinations);
+
+    const allDestinations = itineraries
+      .filter((itinerary) => itinerary.name == i.name)
+      .map((itinerary) => itinerary.destinations)
+      .flat();
+
+    const uniqueDestinations = Array.from(
+      new Map(
+        allDestinations.map((dest) => [dest.destination_id, dest])
+      ).values()
+    );
+    console.log("uniquedestinations", uniqueDestinations);
+
+    console.log("alldestinations", allDestinations);
+    setAllDestinationsPerCountry(uniqueDestinations);
+  };
+
+  const handleCloseEdit = () => setShowEditModal(false);
 
   const handleSelectCountry = (selectedOption) => {
+    setSelectedDestinations([]);
     setSelectedLabel(selectedOption);
     const selected = selectedOption.label.toString().slice(5);
 
@@ -129,10 +176,9 @@ const DashboardComponent = ({
     getItineraries(id)
       .then((res) => {
         setItineraries(res);
-        console.log("res", res);
       })
       .catch((er) => console.log(er));
-  }, []);
+  }, [itineraries]);
 
   useEffect(() => {
     axios
@@ -140,7 +186,7 @@ const DashboardComponent = ({
         "https://valid.layercode.workers.dev/list/countries?format=select&flags=true&value=code"
       )
       .then((res) => {
-        console.log(res);
+        console.log("COUNTRIES", res.data);
         setCountries(res.data.countries);
       });
   }, []);
@@ -181,13 +227,24 @@ const DashboardComponent = ({
     };
     console.log("form input", formInputs);
 
+    if (showCreateModal) {
     createItinerary(formInputs)
       .then((res) => {
         console.log("RESPONSE", res);
         setSuccess(true);
-        setSelectedDestinations([])
       })
       .catch((er) => console.log(er));
+    } else {
+      editItinerary(currEditingItinerary.id, formInputs)
+      .then((res) => {
+        console.log("RESPONSE", res);
+        setSuccess(true);
+        setCurrEditingItinerary(itineraries.find(i => i.id == currEditingItinerary.id))
+      })
+      .catch((er) => console.log(er));
+
+
+    }
   };
 
   return (
@@ -199,7 +256,7 @@ const DashboardComponent = ({
             variant="secondary"
             size="lg"
             className="ms-3"
-            onClick={handleShow}
+            onClick={handleShowCreate}
           >
             Create New Itinerary
           </Button>
@@ -233,11 +290,14 @@ const DashboardComponent = ({
                     .join(", ")}
                 </td>
                 <td>
-                  <LinkContainer to={`/edititinerary/${itinerary.id}`}>
-                    <Button className="btn-sm">
-                      <i className="bi bi-pencil-square"></i>
-                    </Button>
-                  </LinkContainer>
+                  {/* <LinkContainer to={`/edititinerary/${itinerary.id}`}> */}
+                  <Button
+                    className="btn-sm"
+                    onClick={() => handleShowEdit(itinerary)}
+                  >
+                    <i className="bi bi-pencil-square"></i>
+                  </Button>
+                  {/* </LinkContainer> */}
                   {"  /  "}
                   <Button
                     variant="danger"
@@ -252,9 +312,11 @@ const DashboardComponent = ({
           </tbody>
         </Table>
       </Col>
-      <Modal size="xl" show={showModal} onHide={handleClose}>
+      <Modal size="xl" show={showCreateModal} onHide={handleCloseCreate}>
         <Modal.Header closeButton>
-          <Modal.Title>Create New Itinerary</Modal.Title>
+          <Modal.Title className="text-muted ">
+            Create New Itinerary
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Container>
@@ -311,17 +373,14 @@ const DashboardComponent = ({
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-      
                         }}
                         disabled={selectedCountry == "" ? true : false}
                       >
-{selectedDestinations.length > 0
-    ? `${selectedDestinations
-        .map((destination) => destination.name)
-        .join(", ")}`
-    : `Select Destinations For ${selectedCountry}`
-  }
-
+                        {selectedDestinations.length > 0
+                          ? `${selectedDestinations
+                              .map((destination) => destination.name)
+                              .join(", ")}`
+                          : `Select Destinations For ${selectedCountry}`}
                       </Dropdown.Toggle>
 
                       <Dropdown.Menu className="w-100 p-2 text-muted">
@@ -333,7 +392,11 @@ const DashboardComponent = ({
                               name="destinations"
                               id={destination.destination_id}
                               label={`${destination.name}   ($${destination.cost})`}
-                              checked={selectedDestinations.find(d=> d.destination_id === destination.destination_id)}
+                              checked={selectedDestinations.find(
+                                (d) =>
+                                  d.destination_id ===
+                                  destination.destination_id
+                              )}
                               onChange={() => handleCheckboxChange(destination)}
                             />
                           ))
@@ -345,12 +408,9 @@ const DashboardComponent = ({
                           // <Nav.Link href="/createdestination">Create New Destination</Nav.Link>
                           // </div>
                           <Dropdown.Item disabled>
-                          No existing destinations for {selectedCountry} {" "} :(
-                        </Dropdown.Item>
-          
-                        )
-                        }
-                        
+                            No existing destinations for {selectedCountry} :(
+                          </Dropdown.Item>
+                        )}
                       </Dropdown.Menu>
                     </Dropdown>
                   </Form.Group>
@@ -363,8 +423,143 @@ const DashboardComponent = ({
                     Create
                   </Button>
                   <Alert variant="success" className="mt-3" show={success}>
-              Successfully created itinerary
-            </Alert> 
+                    Successfully created itinerary
+                  </Alert>
+
+                  <Row></Row>
+                  {/* <Alert variant="danger" className="mt-3" show={showAlert}>
+              {alertMessage}
+            </Alert>
+            <Alert variant="success" className="mt-3" show={success}>
+              Successfully created claim
+            </Alert> */}
+                </Form>
+              </Col>
+            </Row>
+          </Container>
+        </Modal.Body>
+        {/* <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+        </Modal.Footer> */}
+      </Modal>
+
+      <Modal size="xl" show={showEditModal} onHide={handleCloseEdit}>
+        <Modal.Header closeButton>
+          <Modal.Title className="text-muted ">
+            Edit Itinerary
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Container>
+            <Row className="justify-content-md-center p-5">
+              <Col md={11}>
+                {/* <Form onSubmit={(e) => handleSubmit(e)}> */}
+                <Form onSubmit={(e) => handleSubmit(e)}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Title</Form.Label>
+                    <Form.Control
+                      name="title"
+                      required
+                      type="text"
+                      maxLength="100"
+                      defaultValue={currEditingItinerary.title}
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Budget</Form.Label>
+                    <div className="input-group">
+                      <div className="input-group-prepend">
+                        <span className="input-group-text">$</span>
+                      </div>
+                      <Form.Control
+                        name="budget"
+                        required
+                        type="number"
+                        step="0.01"
+                        defaultValue={currEditingItinerary.budget}
+                      />
+                    </div>
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Country</Form.Label>
+                    <Select
+                      options={countries}
+                      value={selectedLabel}
+                      onChange={(selectedOption) =>
+                        handleSelectCountry(selectedOption)
+                      }
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Destinations</Form.Label>
+                    <Dropdown>
+                      <Dropdown.Toggle
+                        id="dropdown-basic"
+                        style={{
+                          backgroundColor: "white",
+                          color: "grey",
+                          borderColor: "#d3d3d3",
+                          width: "100%",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                        disabled={selectedCountry == "" ? true : false}
+                      >
+                        {selectedDestinations.length > 0
+                          ? `${selectedDestinations
+                              .map((destination) => destination.name)
+                              .join(", ")}`
+                          : `Select Destinations For ${selectedCountry}`}
+                      </Dropdown.Toggle>
+
+                      <Dropdown.Menu className="w-100 p-2 text-muted">
+                        {allDestinationsPerCountry.length > 0 ? (
+                          allDestinationsPerCountry.map((destination) => (
+                            <Form.Check
+                              key={destination.destination_id}
+                              type="checkbox"
+                              name="destinations"
+                              id={destination.destination_id}
+                              label={`${destination.name}   ($${destination.cost})`}
+                              checked={selectedDestinations.find(
+                                (d) =>
+                                  d.destination_id ===
+                                  destination.destination_id
+                              )}
+                              onChange={() => handleCheckboxChange(destination)}
+                            />
+                          ))
+                        ) : (
+                          // <div style ={{display:"flex", gap:"5px"}}>
+                          // <Dropdown.Item disabled>
+                          //   No existing destinations for {selectedCountry}
+                          // </Dropdown.Item>
+                          // <Nav.Link href="/createdestination">Create New Destination</Nav.Link>
+                          // </div>
+                          <Dropdown.Item disabled>
+                            No existing destinations for {selectedCountry} :(
+                          </Dropdown.Item>
+                        )}
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </Form.Group>
+
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    className="w-100 mt-5"
+                  >
+                    Edit
+                  </Button>
+                  <Alert variant="success" className="mt-3" show={success}>
+                    Successfully edited itinerary 
+                  </Alert>
 
                   <Row></Row>
                   {/* <Alert variant="danger" className="mt-3" show={showAlert}>

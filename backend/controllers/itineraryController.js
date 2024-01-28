@@ -59,13 +59,29 @@ const getItineraries = async (req, res) => {
 const editItinerary = async (req, res) => {
   try {
     const itineraryid = req.params.itineraryid;
-    const { country_id, user_id, budget, title, name, destinations } = req.body;
+    const { user_id, budget, title, name, destinations } = req.body;
+
+    const q0 = ` SELECT * FROM country WHERE name = ?;`
+
+    const countryExists = await db.query(q0, [name])
+
+    let country_id = ''
+
+    if (countryExists.length > 0) {
+        country_id = countryExists[0].id
+    } else {
+        const result = await db.query('INSERT INTO country (name) VALUES (?)', [name]);
+        country_id = result.insertId
+    }
+
+    console.log(country_id)
+
     const itineraryQuery = `
         UPDATE itinerary
         SET country_id=?, user_id=?, budget=?, title=?
         WHERE id=?
       `;
-    await db.query(itineraryQuery, [
+    const output1 =await db.query(itineraryQuery, [
       country_id,
       user_id,
       budget,
@@ -73,21 +89,25 @@ const editItinerary = async (req, res) => {
       itineraryid,
     ]);
 
-    //u still need to store 2 values to get the dropdown. 1. is all destinations that u input before for a country to show all the options 2. is the destinations u selected
+    const destinationsList = destinations.map((d) => parseInt(d.destination_id))
+    console.log("destinationslist ", destinationsList)
 
-    const placeholders = destinations.map(() => "(?, ?)").join(", ");
-    const itinerarydestinationQuery = `
-      START TRANSACTION;
 
-      DELETE FROM itinerary_destination WHERE itinerary_id = ?;
-      INSERT INTO itinerary_destination (itinerary_id, destination_id) VALUES
-        ${placeholders};
-    
-      COMMIT;    `;
-    await db.query(itinerarydestinationQuery, [itineraryid, ...destinations]);
+    const itinerarydestinationQuery1 = `DELETE FROM itinerary_destination WHERE itinerary_id = ?;`;
+    const output2 = await db.query(itinerarydestinationQuery1, [itineraryid]);
 
-    //       // Successful update
-    res.status(200).json({ message: "itinerary updated successfully" });
+    if (destinationsList.length > 0) {
+
+    const placeholders = destinationsList.map(() => `(${itineraryid}, ?)`).join(", ");
+    const itinerarydestinationQuery2 = `INSERT INTO itinerary_destination (itinerary_id, destination_id) VALUES ${placeholders};`;
+    const output3 = await db.query(itinerarydestinationQuery2, [...destinationsList]);
+    }
+
+
+    res.status(200).json({ message: "itinerary edited successfully", output1:output1, output2:output2});
+    console.log("output1", output1)
+    console.log("output2", output2)
+
   } catch (err) {
     console.log(err);
   }
@@ -96,13 +116,21 @@ const createItinerary = async (req, res) => {
   try {
     const {user_id, budget, title, name, destinations } = req.body;
     let country_id = ''
-    if (destinations.length > 0) {
-        country_id =  destinations[0].country_id;
-      } else {
-        // If the country doesn't exist, insert it and then return its id
+
+    const q0 = ` SELECT * FROM country WHERE name = ?;`
+
+    const countryExists = await db.query(q0, [name])
+    console.log("COUNTRYEXISTS",countryExists)
+
+    if (countryExists.length > 0) {
+        country_id = countryExists[0].id
+    } else {
         const result = await db.query('INSERT INTO country (name) VALUES (?)', [name]);
+        console.log("RESULT", result)
         country_id = result.insertId
-      }
+    }
+
+    console.log("COUNTRY ID", country_id)
 
     const q = `
             INSERT INTO itinerary 
@@ -113,15 +141,18 @@ const createItinerary = async (req, res) => {
     const destinationsList = destinations.map((d) => parseInt(d.destination_id))
     console.log("destinationslist ", destinationsList)
 
+    if (destinationsList.length > 0) {
+
+
     const placeholders = destinationsList.map(() => `(${output1.insertId}, ?)`).join(", ");
     const itinerarydestinationQuery = `
       INSERT INTO itinerary_destination (itinerary_id, destination_id) VALUES ${placeholders} `;
     const output2 = await db.query(itinerarydestinationQuery, [...destinationsList]);
+    }
 
 
-    res.status(200).json({ message: "itinerary create successfully", output1:output1, output2:output2});
+    res.status(200).json({ message: "itinerary create successfully", output1:output1});
     console.log("output1", output1)
-    console.log("output2", output2)
   } catch (err) {
     console.log(err);
   }
