@@ -27,7 +27,7 @@ const getItineraries = async (req, res) => {
 
     const q2 = `
       SELECT
-        itinerary_destination.id,
+
         itinerary_destination.itinerary_id,
         itinerary_destination.destination_id,
         destination.country_id,

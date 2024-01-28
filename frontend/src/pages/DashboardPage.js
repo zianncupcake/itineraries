@@ -11,6 +11,12 @@ const DashboardPage = () => {
         return data;
     }  
 
+    const getDestinations = async (userid) => {
+        const { data } = await axios.get(`http://localhost:8800/api/destination/peruser/${userid}`);
+        return data;
+    }  
+
+
     const deleteItinerary = async (id) => {
         const { data } = await axios.delete(`http://localhost:8800/api/itinerary/${id}`);
         return data;
@@ -28,7 +34,7 @@ const DashboardPage = () => {
 
 
   
-  return <DashboardComponent getItineraries={getItineraries} deleteItinerary={deleteItinerary} createItinerary={createItinerary} editItinerary={editItinerary} />;
+  return <DashboardComponent getItineraries={getItineraries} getDestinations={getDestinations} deleteItinerary={deleteItinerary} createItinerary={createItinerary} editItinerary={editItinerary} />;
 };
 
 export default DashboardPage;

@@ -1,15 +1,14 @@
-// const express = require('express')
+const express = require('express')
 
-// const router = express.Router()
+const router = express.Router()
 
-// const {editDestination,deleteDestination,createDestination,getDestinationsPerCountryForUser } = require("../controllers/itineraryController")
+const {editDestination,deleteDestination,createDestination,getDestinations } = require("../controllers/destinationController")
 
-// //i gonna query. userid? countryid?
-// router.get("/", getDestinationsPerCountryForUser)
+//i gonna query. userid? 
+router.get("/peruser/:userid", getDestinations)
+router.put("/:destinationid", editDestination)
+router.delete("/:destinationid", deleteDestination)
+router.post("/", createDestination)
 
-// router.put("/:destinationid", editDestination)
-// router.delete("/:destinationid", deleteDestination)
-// router.post("/", createDestination)
 
-
-// module.exports = router
+module.exports = router
