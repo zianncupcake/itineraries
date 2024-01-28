@@ -161,12 +161,15 @@ const createItinerary = async (req, res) => {
 const deleteItinerary = async (req,res) => {
     try {
         const itineraryid = req.params.itineraryid;
+        //rmb that sequence matters!
+
+        const itinerarydestinationQuery = 'DELETE FROM itinerary_destination WHERE itinerary_id = ?';
+        await db.query(itinerarydestinationQuery, [itineraryid]);
+
 
         const itineraryQuery = 'DELETE FROM itinerary WHERE id = ?';
         await db.query(itineraryQuery, [itineraryid]);
 
-        const itinerarydestinationQuery = 'DELETE FROM itinerary_destination WHERE itinerary_id = ?';
-        await db.query(itinerarydestinationQuery, [itineraryid]);
 
     
         res.status(200).json({ message: 'Claim deleted successfully' });

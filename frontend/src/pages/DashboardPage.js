@@ -2,6 +2,13 @@ import DashboardComponent from "../components/DashboardComponent";
 import axios from "axios";
 // import {useAuth} from '../context/UserContext'
 import { useState, useEffect } from "react";
+import NavComponent from "../components/NavComponent";
+import {
+    Row,
+    Col,
+
+  } from "react-bootstrap";
+  
 
 
 const DashboardPage = () => {
@@ -34,7 +41,25 @@ const DashboardPage = () => {
 
 
   
-  return <DashboardComponent getItineraries={getItineraries} getDestinations={getDestinations} deleteItinerary={deleteItinerary} createItinerary={createItinerary} editItinerary={editItinerary} />;
+  return (
+
+
+
+<Row style={{ height: "900px" }}>
+<Col md={2} style={{paddingLeft:"40px", paddingRight:"0px"}} >
+  <Row className="h-100" >
+  <NavComponent  />
+  </Row>
+</Col>
+
+<Col md={10} className="px-5">
+    <Row className="h-100" >
+    <DashboardComponent getItineraries={getItineraries} getDestinations={getDestinations} deleteItinerary={deleteItinerary} createItinerary={createItinerary} editItinerary={editItinerary} />
+    </Row>
+</Col>
+</Row>
+
+  )
 };
 
 export default DashboardPage;

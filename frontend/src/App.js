@@ -3,12 +3,12 @@ import './App.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ItinerariesPage from './pages/DashboardPage';
 import DestinationPage from './pages/DestinationPage';
+import NavComponent from './components/NavComponent';
 
 
 function App() {
   return (
     <BrowserRouter>
-    {/* <HeaderComponent /> */}
       <Routes>
       <Route path="/dashboard/:id" element={<ItinerariesPage />} />
       <Route path="/destination/:id" element={<DestinationPage />} />
