@@ -1,4 +1,5 @@
 # itineraries
+creating itineraries with existing destinations of countries, creating destinations, updating/deleting itineraries and destinations (ReactJS, NodeJS, Axios, ExpressJS, Postman, MySQL, Bootstrap, CRUD operations, RESTful APIs)
 
 ## create itinerary
 
